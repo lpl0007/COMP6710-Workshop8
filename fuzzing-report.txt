@@ -1,0 +1,15 @@
+Workshop 8: Greybox Fuzzing with AFL++
+
+Target: `w8.c`  
+Fuzzer: AFL++ 5.04a  
+Run duration: 60 seconds
+
+**Results**
+- Total executions: 6,757
+- Unique crashes saved: 0
+- Unique hangs saved: 0
+- Timeouts: 0
+- Coverage stability: 100%
+- Bitmap coverage: 33.33%
+
+**Observation:** AFL++ completed the 60-second run without saving any crashes or hangs. The target program generates random numbers but does not consume the supplied fuzzing input, limiting the usefulness of this fuzzing run for testing input-dependent behavior. These results apply only to this run and do not prove the program is free of defects.
