@@ -1,49 +1,72 @@
-## Workshop - Greybox Fuzzing with AFL++
+# Workshop 8: Greybox Fuzzing With AFL++
 
-AFL++ is a very popular fuzzing [tool](https://aflplus.plus/).
-Initially it originated from the American Fuzzy Lop fuzzer created by Michal Zalewski. 
-It includes:
+## Description
 
-- A fuzzer with many mutators and configurations: afl-fuzz.
-- Different source code instrumentation modules: LLVM mode, afl-as, GCC plugin.
-- Different binary code instrumentation modules: QEMU mode, Unicorn mode, QBDI mode.
-- Utilities for testcase/corpus minimization: afl-tmin, afl-cmin.
+Use AFL++ to perform a greybox fuzzing run against the provided C program, `w8.c`, and record the results.
 
-### If You Want to Install AFL++ On Your Ubuntu Machine/Container 
+## Background
 
-- apt-get update
-- apt-get install -y build-essential python3-dev automake cmake git flex bison libglib2.0-dev libpixman-1-dev python3-setuptools cargo libgtk-3-dev
-- apt-get install -y lld-14 llvm-14 llvm-14-dev clang-14 || sudo apt-get install -y lld llvm llvm-dev clang
-- apt-get install -y gcc-$(gcc --version|head -n1|sed 's/\..*//'|sed 's/.* //')-plugin-dev libstdc++-$(gcc --version|head -n1|sed 's/\..*//'|sed 's/.* //')-dev
-- apt-get install -y ninja-build
-- apt-get install -y cpio libcapstone-dev
-- apt-get install -y wget curl 
-- apt-get install -y python3-pip
-- git clone https://github.com/AFLplusplus/AFLplusplus
-- cd AFLplusplus
-- make distrib
-- make install
-- CC=afl-clang-fast AFL_HARDEN=1 make
+Greybox fuzzing uses feedback from program execution, such as code coverage, to guide the generation of test cases. AFL++ is a widely used fuzzing tool. It includes the `afl-fuzz` fuzzer, instrumentation options, and utilities for minimizing test cases and corpora.
 
-### How To Get Started (Demonstration in Class)
+Learn more: [AFL++](https://aflplus.plus/).
 
-Execute the following commands on the terminal: 
+## Activities
 
-- `docker pull akondrahman/fuzz4life`
-- `docker run --rm -it <IMAGEID> bash`
-- `cd WORKSHOP/greybox/`
-- `nano fuzzing-inputs/head`
-- `cd AFLplusplus/`
-- `afl-clang-fast -g -w ../simple.c  -o simple`
-- `afl-fuzz -i ../fuzzing-inputs -t 10000  -o simple-output ./simple`
-- Keep an eye on `state` and the output in general 
-- `ls -al simple-output/default/`
+### 1. Prepare the target
 
+The target program is `w8.c`. Compile it with AFL++ instrumentation:
 
-### Tasks For You To Do 
+```bash
+afl-clang-fast -g -O0 w8.c -o w8
+```
 
-- Repeat the steps shown in class for `w8.c`
-- Save and submit the screenshot of your AFL++ execution screen
-- Save and submit the output folder generated as part of the exercise
-- Report the number of crashes and hangs by the tool for the program  in a text file 
+Create a directory for the initial input corpus and add a seed file:
 
+```bash
+mkdir -p fuzzing-inputs
+printf 'hello\n' > fuzzing-inputs/seed
+```
+
+### 2. Run AFL++
+
+Run the fuzzer from the project directory:
+
+```bash
+AFL_I_DONT_CARE_ABOUT_MISSING_CRASHES=1 afl-fuzz -i fuzzing-inputs -o afl-output -V 60 -- ./w8
+```
+
+The environment variable was needed in the Codespaces environment because its configured core-dump handler can interfere with AFL++ crash handling. AFL++ may display a warning about this limitation.
+
+While the fuzzer is running, observe the execution screen and save a screenshot. AFL++ stores its results in `afl-output/`, including statistics in `afl-output/default/fuzzer_stats`.
+
+## Tasks For You To Do
+
+- Run AFL++ against `w8.c`.
+- Save a screenshot of the AFL++ execution screen.
+- Save the AFL++ output folder.
+- Record the number of crashes and hangs reported by the run in a text file.
+
+## Results From This Run
+
+The fuzzer ran for 60 seconds. The recorded results were:
+
+| Metric | Result |
+| --- | ---: |
+| Total executions | 6,757 |
+| Unique crashes saved | 0 |
+| Unique hangs saved | 0 |
+| Timeouts reported | 0 |
+| Coverage stability | 100% |
+| Bitmap coverage | 33.33% |
+
+The results are also recorded in [`fuzzing-report.txt`](fuzzing-report.txt).
+
+## Important Note
+
+The provided `w8.c` program generates random numbers but does not read the fuzzing input. Therefore, this run does not meaningfully exercise input-dependent behavior. These results describe this 60-second run only and do not prove that the program is free of defects.
+
+## Deliverables
+
+- Screenshot of the AFL++ execution screen.
+- AFL++ output folder (`afl-output/`).
+- Text report listing the crashes and hangs observed (`fuzzing-report.txt`).
